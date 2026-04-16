@@ -243,6 +243,8 @@ function startSim() {
   const villainInput = readPlayer('p2');
   const N = parseInt(document.getElementById('numSims').value);
 
+  const sampleIdx = Math.floor(Math.random() * N);
+
   const results = {
     p1_win:0, p2_win:0, draw:0,
     total_turns:0,
@@ -251,6 +253,7 @@ function startSim() {
     p1_wep: { p:{turns:0,dmg:0,miss:0}, s:{turns:0,dmg:0,miss:0}, m:{turns:0,dmg:0,miss:0} },
     p2_wep: { p:{turns:0,dmg:0,miss:0}, s:{turns:0,dmg:0,miss:0}, m:{turns:0,dmg:0,miss:0} },
     sampleLog: [],
+    sampleSimNum: sampleIdx + 1,
   };
 
   const BATCH = 200;
@@ -259,8 +262,7 @@ function startSim() {
   function runBatch() {
     const end = Math.min(done + BATCH, N);
     for (let i = done; i < end; i++) {
-      const isLast = (i === N - 1);
-      const r = runOneSim(heroInput, villainInput, isLast);
+      const r = runOneSim(heroInput, villainInput, i === sampleIdx);
 
       if      (r.winner === 1) results.p1_win++;
       else if (r.winner === 2) results.p2_win++;
@@ -284,7 +286,7 @@ function startSim() {
         results.p2_wep[w].miss  += r.p2_wep_stats[w].miss;
       }
 
-      if (isLast) results.sampleLog = r.log;
+      if (i === sampleIdx) results.sampleLog = r.log;
     }
 
     done = end;
@@ -384,7 +386,9 @@ function showResults(results, N, p1name, p2name) {
   buildWepTable('p1_wep_stats', results.p1_wep, p1names);
   buildWepTable('p2_wep_stats', results.p2_wep, p2names);
 
-  // Battle log (last simulation)
+  // Battle log (random simulation)
+  document.getElementById('logTitle').textContent =
+    `Sample Attack Log — Simulation #${results.sampleSimNum.toLocaleString()}`;
   const logBody = document.getElementById('logBody');
   logBody.innerHTML = '';
   results.sampleLog.forEach(entry => {
