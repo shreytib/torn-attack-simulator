@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torn Attack Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg2: #0f1218;
+    --bg3: #141820;
+    --panel: #181d27;
+    --panel2: #1e2430;
+    --border: #2a3040;
+    --p1: #e8a44a;
+    --p1-dim: #8a5c1e;
+    --p2: #4a9ee8;
+    --p2-dim: #1e4a8a;
+    --accent: #c8412a;
+    --accent2: #e8a44a;
+    --green: #3dd68c;
+    --text: #d4dbe8;
+    --text-dim: #6b7890;
+    --text-bright: #f0f4ff;
+    --red: #e85555;
+    --font-head: 'Rajdhani', sans-serif;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-body: 'Exo 2', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    font-size: 13px;
+  }
+  /* HEADER */
+  .header {
+    background: linear-gradient(90deg, #0a0c10 0%, #1a0e08 40%, #1a0a0a 60%, #0a0c10 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-title {
+    font-family: var(--font-head);
+    font-size: 22px; font-weight: 700;
+    letter-spacing: 3px; color: var(--text-bright);
+    text-transform: uppercase;
+  }
+  .header-title span { color: var(--accent); }
+  .header-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 2px; }
+  /* MAIN LAYOUT */
+  .main { max-width: 1600px; margin: 0 auto; padding: 16px; }
+  .sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+  /* PANELS */
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .panel-header {
+    padding: 8px 14px;
+    font-family: var(--font-head); font-size: 13px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-header.p1 { background: linear-gradient(90deg, rgba(232,164,74,0.15),transparent); color: var(--p1); border-color: rgba(232,164,74,0.3); }
+  .panel-header.p2 { background: linear-gradient(90deg, rgba(74,158,232,0.15),transparent); color: var(--p2); border-color: rgba(74,158,232,0.3); }
+  .panel-body { padding: 12px; }
+  /* FORM GRIDS */
+  .form-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .form-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+  .form-full { grid-column: 1/-1; }
+  .field { display: flex; flex-direction: column; gap: 3px; }
+  .field label {
+    font-family: var(--font-mono); font-size: 9px;
+    color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase;
+  }
+  .field input, .field select {
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text-bright); padding: 5px 8px;
+    border-radius: 2px; font-family: var(--font-mono); font-size: 12px;
+    outline: none; width: 100%; transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--p1); }
+  .p2-side .field input:focus, .p2-side .field select:focus { border-color: var(--p2); }
+  .field select option { background: var(--bg2); }
+  /* SECTION LABELS */
+  .section-label {
+    font-family: var(--font-head); font-size: 11px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;
+    padding: 8px 0 4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 8px; grid-column: 1/-1;
+  }
+  /* WEAPON SUB-SECTION LABEL */
+  .wep-label {
+    font-family: var(--font-head); font-size: 10px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase;
+    padding: 6px 8px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 2px;
+    margin: 8px 0 6px; grid-column: 1/-1;
+  }
+  /* ARMOR SLOT LABEL */
+  .armor-slot {
+    font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 0 2px; border-bottom: 1px solid var(--border);
+    margin-top: 6px; grid-column: 1/-1;
+  }
+  /* CHECKBOX GRID */
+  .check-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .check-item { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 0; }
+  .check-item input[type=checkbox] { width: 12px; height: 12px; accent-color: var(--p1); cursor: pointer; flex-shrink: 0; }
+  .p2-side .check-item input[type=checkbox] { accent-color: var(--p2); }
+  .check-item span { font-family: var(--font-mono); font-size: 10px; color: var(--text); }
+  /* SIMULATE BUTTON */
+  .sim-controls {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 4px;
+    padding: 16px 20px; display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .btn-sim {
+    background: var(--accent); color: #fff; border: none;
+    padding: 10px 28px; font-family: var(--font-head); font-size: 16px;
+    font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+    cursor: pointer; border-radius: 2px; transition: all 0.15s;
+  }
+  .btn-sim:hover { background: #e85a40; box-shadow: 0 0 20px rgba(200,65,42,0.5); }
+  .btn-sim:disabled { background: #444; cursor: not-allowed; box-shadow: none; }
+  .sim-n-field { display: flex; align-items: center; gap: 8px; }
+  .sim-n-field label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+  .sim-n-field select {
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--text-bright); padding: 6px 10px;
+    font-family: var(--font-mono); font-size: 12px; border-radius: 2px; outline: none;
+  }
+  .progress-bar-wrap { flex: 1; min-width: 200px; }
+  .progress-bar { height: 4px; background: var(--bg2); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.1s; }
+  .progress-text { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  /* RESULTS */
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .result-card { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 14px; text-align: center; }
+  .result-card.highlight { border-color: var(--accent); background: linear-gradient(180deg, rgba(200,65,42,0.08), var(--panel)); }
+  .result-card-label { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .result-card-value { font-family: var(--font-head); font-size: 30px; font-weight: 700; color: var(--text-bright); line-height: 1; }
+  .result-card-sub { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  .p1-val { color: var(--p1); }
+  .p2-val { color: var(--p2); }
+  /* HP BAR */
+  .hp-display { display: flex; align-items: center; gap: 10px; }
+  .hp-bar-wrap { flex: 1; }
+  .hp-bar { height: 8px; border-radius: 4px; background: var(--bg2); overflow: hidden; }
+  .hp-fill-p1 { height: 100%; background: linear-gradient(90deg, var(--p1-dim), var(--p1)); transition: width 0.5s; }
+  .hp-fill-p2 { height: 100%; background: linear-gradient(90deg, var(--p2-dim), var(--p2)); transition: width 0.5s; }
+  .hp-label { font-family: var(--font-mono); font-size: 10px; white-space: nowrap; }
+  /* WIN CHANCE BAR */
+  .win-bar-section { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-bottom: 16px; }
+  .win-bar-title { font-family: var(--font-head); font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
+  .win-bar { height: 32px; border-radius: 3px; overflow: hidden; display: flex; background: var(--bg2); }
+  .win-p1 { background: linear-gradient(90deg, var(--p1-dim), var(--p1)); display: flex; align-items: center; padding: 0 10px; min-width: 40px; transition: width 0.5s; }
+  .win-p2 { background: linear-gradient(90deg, var(--p2-dim), var(--p2)); display: flex; align-items: center; padding: 0 10px; min-width: 40px; justify-content: flex-end; transition: width 0.5s; }
+  .win-draw { background: var(--bg3); display: flex; align-items: center; justify-content: center; min-width: 30px; }
+  .win-pct { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; }
+  .win-names { display: flex; justify-content: space-between; margin-top: 5px; }
+  .win-name { font-family: var(--font-mono); font-size: 10px; }
+  /* STATS TABLE */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .stats-table { width: 100%; border-collapse: collapse; }
+  .stats-table th, .stats-table td { padding: 5px 10px; text-align: left; font-family: var(--font-mono); font-size: 11px; border-bottom: 1px solid rgba(42,48,64,0.5); }
+  .stats-table th { color: var(--text-dim); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+  .stats-table td { color: var(--text-bright); }
+  .stats-table td.right { text-align: right; }
+  /* LOG */
+  .log-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 4px; }
+  .log-header { padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .log-header-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+  .log-body { padding: 12px 14px; height: 350px; overflow-y: auto; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; background: var(--bg); }
+  .log-body::-webkit-scrollbar { width: 4px; }
+  .log-body::-webkit-scrollbar-track { background: var(--bg2); }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-line { color: var(--text); margin-bottom: 1px; }
+  .log-line.turn-header { color: var(--text-dim); padding: 4px 0; font-size: 10px; letter-spacing: 1px; }
+  .log-line.hit { color: #aad4ff; }
+  .log-line.hit-crit { color: #ffcc44; }
+  .log-line.miss { color: var(--text-dim); }
+  .log-line.kill { color: var(--green); font-weight: bold; }
+  .log-line.stale { color: var(--text-dim); font-style: italic; }
+  .log-line.reload { color: #888; }
+  .log-line.bleed, .log-line.poison, .log-line.burn { color: #e8884a; }
+  .log-line.buff { color: #88dd88; }
+  .log-line.debuff { color: #dd8888; }
+  /* COLLAPSIBLE */
+  .collapsible-btn { background: none; border: none; cursor: pointer; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); display: flex; align-items: center; gap: 4px; padding: 0; }
+  .collapsible-btn:hover { color: var(--text); }
+  .collapse-content { overflow: hidden; }
+  /* MISC */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; grid-column: 1/-1; }
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  /* COPY BUTTON */
+  .copy-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 3px 9px;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  #p1panel .copy-btn:hover { color: var(--p1); border-color: var(--p1); }
+  #p2panel .copy-btn:hover { color: var(--p2); border-color: var(--p2); }
+  /* API BAR */
+  .api-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .api-key-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border-radius: 2px;
+    outline: none;
+    min-width: 0;
+  }
+  .api-key-input::placeholder { color: var(--text-dim); opacity: 0.7; }
+  .api-key-input:focus { border-color: var(--text-dim); }
+  .api-load-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 2px;
+    white-space: nowrap;
+    letter-spacing: 1px;
+    transition: all 0.15s;
+  }
+  .api-load-btn:hover { color: var(--text-bright); border-color: var(--text-dim); }
+  .api-status { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+  .api-status.ok  { color: var(--green); }
+  .api-status.err { color: var(--red); }
+  /* HEADER BUTTON GROUP */
+  .header-btns { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+  .header-btns .copy-btn { margin-left: 0; }
+  /* MANUAL ENTRY WARNING */
+  .manual-warn {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 12px; background: rgba(232,164,74,0.07);
+    border-bottom: 1px solid rgba(232,164,74,0.18);
+    font-family: var(--font-mono); font-size: 10px;
+  }
+  .manual-warn-icon { color: var(--accent2); flex-shrink: 0; font-size: 13px; line-height: 1.4; }
+  .manual-warn-body { flex: 1; }
+  .manual-warn-title { color: var(--accent2); font-weight: 600; display: block; margin-bottom: 3px; letter-spacing: 1px; }
+  .manual-warn-items { color: var(--text-dim); line-height: 1.6; }
+  .manual-warn-dismiss {
+    background: transparent; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 0; flex-shrink: 0; margin-top: 1px;
+  }
+  .manual-warn-dismiss:hover { color: var(--text-bright); }
+  /* Section highlight — whole section (used for Merits) */
+  .section-review { outline: 1px solid rgba(232,164,74,0.28); border-radius: 3px; }
+  .section-review > .section-label { color: var(--accent2) !important; }
+  /* Field highlight — individual field (used for specific missing inputs) */
+  .field-review { outline: 1px solid rgba(232,164,74,0.35); border-radius: 2px; }
+  .field-review > label:first-child { color: var(--accent2) !important; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">TORN <span>ATTACK</span> SIMULATOR</div>
+    <div class="header-sub">v2.1 — SIMULATION ENGINE</div>
+  </div>
+  <div class="header-sub">Based on Torn City combat mechanics</div>
+</div>
+
+<div class="main">
+
+  <!-- ================================================================
+       PLAYER INPUT PANELS
+       ================================================================ -->
+  <div class="sim-grid">
+
+    <!-- ============================================================
+         PLAYER 1
+         ============================================================ -->
+    <div class="panel" id="p1panel">
+      <div class="panel-header p1">⚔ PLAYER 1 — ATTACKER
+        <div class="header-btns">
+          <button class="copy-btn" onclick="copyPlayer('p2','p1')">Copy from P2</button>
+          <button class="copy-btn" onclick="savePlayerConfig('p1')" title="Save P1 config to file">💾 Save</button>
+          <button class="copy-btn" onclick="loadPlayerConfig('p1')" title="Load P1 config from file">📂 Load</button>
+        </div>
+      </div>
+      <div class="api-bar">
+        <input type="text" class="api-key-input" id="p1_api_key" placeholder="Enter Torn API key…">
+        <button class="api-load-btn" onclick="loadFromAPI('p1')">Load from API</button>
+        <span class="api-status" id="p1_api_status"></span>
+      </div>
+      <div class="manual-warn" id="p1_manual_warn" style="display:none;">
+        <span class="manual-warn-icon">⚠</span>
+        <div class="manual-warn-body">
+          <span class="manual-warn-title">NOT LOADED FROM API — ENTER MANUALLY:</span>
+          <span class="manual-warn-items">Allow Reload (Primary / Secondary) · Weapon Mods (Primary / Secondary) · Ammo Type (Primary / Secondary) · Attack weight % · Unarmed Type (Fist / Kick)</span>
+        </div>
+        <button class="manual-warn-dismiss" onclick="dismissManualWarn('p1')" title="Dismiss">✕</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- Battle Stats -->
+        <div class="form-grid">
+          <div class="section-label">Battle Stats</div>
+          <div class="field"><label>Name</label><input id="p1_name" value="Player 1" type="text"></div>
+          <div class="field"><label>Level</label><input id="p1_level" value="100" type="number" min="1"></div>
+          <div class="field"><label>Strength</label><input id="p1_str" value="50000" type="number"></div>
+          <div class="field"><label>Defense</label><input id="p1_def" value="50000" type="number"></div>
+          <div class="field"><label>Speed</label><input id="p1_spd" value="50000" type="number"></div>
+          <div class="field"><label>Dexterity</label><input id="p1_dex" value="50000" type="number"></div>
+        </div>
+
+        <!-- Weapons -->
+        <div class="form-grid" id="p1_section_weapons" style="margin-top:10px;">
+          <div class="section-label">Weapons</div>
+
+          <!-- Primary -->
+          <div class="wep-label">Primary Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p1_wep_p_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p1_wep_p_dmg" value="50" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p1_wep_p_acc" value="70" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p1_wep_p_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Mod 1</label><select id="p1_wep_p_mod1"></select></div>
+          <div class="field"><label>Mod 2</label><select id="p1_wep_p_mod2"></select></div>
+          <div class="field"><label>Bonus 1</label><select id="p1_wep_p_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p1_wep_p_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p1_wep_p_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p1_wep_p_blvl2" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Ammo Type</label>
+            <select id="p1_wep_p_ammo">
+              <option value="STD">STD</option><option value="HP">HP</option>
+              <option value="IN">IN</option><option value="TR">TR</option><option value="PI">PI</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <label class="check-item"><input type="checkbox" id="p1_wep_p_reload" checked><span>Allow Reload</span></label>
+          </div>
+
+          <!-- Secondary -->
+          <div class="wep-label">Secondary Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p1_wep_s_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p1_wep_s_dmg" value="30" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p1_wep_s_acc" value="60" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p1_wep_s_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Mod 1</label><select id="p1_wep_s_mod1"></select></div>
+          <div class="field"><label>Mod 2</label><select id="p1_wep_s_mod2"></select></div>
+          <div class="field"><label>Bonus 1</label><select id="p1_wep_s_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p1_wep_s_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p1_wep_s_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p1_wep_s_blvl2" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Ammo Type</label>
+            <select id="p1_wep_s_ammo">
+              <option value="STD">STD</option><option value="HP">HP</option>
+              <option value="IN">IN</option><option value="TR">TR</option><option value="PI">PI</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <label class="check-item"><input type="checkbox" id="p1_wep_s_reload" checked><span>Allow Reload</span></label>
+          </div>
+
+          <!-- Melee -->
+          <div class="wep-label">Melee Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p1_wep_m_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p1_wep_m_dmg" value="40" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p1_wep_m_acc" value="55" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p1_wep_m_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 1</label><select id="p1_wep_m_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p1_wep_m_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p1_wep_m_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p1_wep_m_blvl2" value="0" type="number" min="0" max="100"></div>
+
+          <!-- Temp -->
+          <div class="wep-label">Temporary Item</div>
+          <div class="field form-full"><label>Item</label><select id="p1_wep_t_name"></select></div>
+        </div>
+
+        <!-- Attack Settings -->
+        <div class="form-grid-4" id="p1_section_attack" style="margin-top:10px;">
+          <div class="section-label">Attack Settings (weight %)</div>
+          <div class="field"><label>Primary %</label><input id="p1_att_p" value="33" type="number" min="0" max="100"></div>
+          <div class="field"><label>Secondary %</label><input id="p1_att_s" value="33" type="number" min="0" max="100"></div>
+          <div class="field"><label>Melee %</label><input id="p1_att_m" value="34" type="number" min="0" max="100"></div>
+          <div class="field"><label>Temp %</label><input id="p1_att_t" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+        <!-- Armor -->
+        <div class="form-grid-3" style="margin-top:10px;">
+          <div class="section-label">Armor</div>
+
+          <div class="armor-slot">Helmet</div>
+          <div class="field"><label>Type</label><select id="p1_helm"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p1_helm_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p1_helm_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Body</div>
+          <div class="field"><label>Type</label><select id="p1_body"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p1_body_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p1_body_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Pants</div>
+          <div class="field"><label>Type</label><select id="p1_pants"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p1_pants_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p1_pants_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Gloves</div>
+          <div class="field"><label>Type</label><select id="p1_gloves"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p1_gloves_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p1_gloves_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Boots</div>
+          <div class="field"><label>Type</label><select id="p1_boots"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p1_boots_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p1_boots_bl" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+        <!-- Misc -->
+        <div class="form-grid" id="p1_section_misc" style="margin-top:10px;">
+          <div class="section-label">Misc</div>
+          <div class="field"><label>Unarmed Type</label>
+            <select id="p1_fist"><option value="1">Fist</option><option value="0">Kick</option></select>
+          </div>
+          <div class="field"><label>Property Boost</label>
+            <select id="p1_property"><option value="0">No</option><option value="1">Yes (+2% dmg)</option></select>
+          </div>
+        </div>
+
+        <!-- Company -->
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="section-label">Company</div>
+          <div class="field"><label>Company</label><select id="p1_comp_name"></select></div>
+          <div class="field"><label>Star (0-10)</label><input id="p1_comp_star" value="0" type="number" min="0" max="10"></div>
+        </div>
+
+        <!-- Education -->
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="section-label">Education Boosts</div>
+          <div class="check-grid form-full">
+            <label class="check-item"><input type="checkbox" id="p1_edu_jap"><span>History (+10% Japanese blade dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_fist"><span>Self Defense (fist dmg +100%)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_melee"><span>History (+2% melee dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_dmg"><span>Biology (+1% all weapon dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_throat"><span>Biology (+10% throat dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_crit"><span>Biology (+3% crit chance)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_steroid"><span>Sports Science (+10% needle effectiveness)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_temp"><span>General Studies (+5% temp weapon dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_ammo"><span>Mathematics (-25% ammo use)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_mg"><span>Combat Training (+1 Machine Gun acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_smg"><span>Combat Training (+1 SMG acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_pistol"><span>Combat Training (+1 Pistol acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_rifle"><span>Combat Training (+1 Rifle acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_ha"><span>Combat Training (+1 Heavy Artillery acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_sg"><span>Combat Training (+1 Shotgun acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p1_edu_temp_type"><span>General Studies (+1 Temp weapon acc)</span></label>
+          </div>
+          <div class="field"><label>Str Edu (%)</label><input id="p1_edu_str_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Def Edu (%)</label><input id="p1_edu_def_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Spd Edu (%)</label><input id="p1_edu_spd_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Dex Edu (%)</label><input id="p1_edu_dex_p" value="0" type="number" min="0"></div>
+        </div>
+
+        <!-- Merits -->
+        <div class="form-grid" id="p1_section_merits" style="margin-top:10px;">
+          <div class="section-label">Merits (levels)</div>
+          <div class="field"><label>Crit Rate</label><input id="p1_m_crit" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Life</label><input id="p1_m_life" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Strength</label><input id="p1_m_str" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Speed</label><input id="p1_m_spd" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Dexterity</label><input id="p1_m_dex" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Defense</label><input id="p1_m_def" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Heavy Artillery</label><input id="p1_m_ha" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Machine Gun</label><input id="p1_m_mg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Rifle</label><input id="p1_m_rifle" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>SMG</label><input id="p1_m_smg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Shotgun</label><input id="p1_m_sg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Pistol</label><input id="p1_m_pistol" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Clubbing</label><input id="p1_m_club" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Piercing</label><input id="p1_m_pierce" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Slashing</label><input id="p1_m_slash" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Temporary</label><input id="p1_m_temp" value="0" type="number" min="0" max="10"></div>
+        </div>
+
+        <!-- Faction -->
+        <div class="form-grid" id="p1_section_faction" style="margin-top:10px;">
+          <div class="section-label">Faction Upgrades</div>
+          <div class="field"><label>Aggression Speed (%)</label><input id="p1_fac_agg_spd" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Aggression Strength (%)</label><input id="p1_fac_agg_str" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Aggression Accuracy (0-10 levels)</label><input id="p1_fac_agg_acc" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Aggression Damage (%)</label><input id="p1_fac_agg_dmg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Suppression Dexterity (%)</label><input id="p1_fac_sup_dex" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Suppression Defense (%)</label><input id="p1_fac_sup_def" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Suppression Life (%)</label><input id="p1_fac_sup_life" value="0" type="number" min="0" max="20"></div>
+        </div>
+
+        <!-- Drugs -->
+        <div class="form-grid" id="p1_section_drugs" style="margin-top:10px;">
+          <div class="section-label">Drugs</div>
+          <div class="field">
+            <label>Drug</label>
+            <select id="p1_drug">
+              <option value="None">None</option>
+              <option value="Xanax">Xanax</option>
+              <option value="Vicodin">Vicodin</option>
+              <option value="LSD">LSD</option>
+              <option value="Ketamine">Ketamine</option>
+              <option value="Speed">Speed</option>
+              <option value="PCP">PCP</option>
+              <option value="Opium">Opium</option>
+            </select>
+          </div>
+          <div class="field"><label>Addiction (%)</label><input id="p1_addiction" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+      </div>
+    </div><!-- end p1 panel -->
+
+    <!-- ============================================================
+         PLAYER 2
+         ============================================================ -->
+    <div class="panel p2-side" id="p2panel">
+      <div class="panel-header p2">🛡 PLAYER 2 — DEFENDER
+        <div class="header-btns">
+          <button class="copy-btn" onclick="copyPlayer('p1','p2')">Copy from P1</button>
+          <button class="copy-btn" onclick="savePlayerConfig('p2')" title="Save P2 config to file">💾 Save</button>
+          <button class="copy-btn" onclick="loadPlayerConfig('p2')" title="Load P2 config from file">📂 Load</button>
+        </div>
+      </div>
+      <div class="api-bar">
+        <input type="text" class="api-key-input" id="p2_api_key" placeholder="Enter Torn API key…">
+        <button class="api-load-btn" onclick="loadFromAPI('p2')">Load from API</button>
+        <span class="api-status" id="p2_api_status"></span>
+      </div>
+      <div class="manual-warn" id="p2_manual_warn" style="display:none;">
+        <span class="manual-warn-icon">⚠</span>
+        <div class="manual-warn-body">
+          <span class="manual-warn-title">NOT LOADED FROM API — ENTER MANUALLY:</span>
+          <span class="manual-warn-items">Allow Reload (Primary / Secondary) · Weapon Mods (Primary / Secondary) · Ammo Type (Primary / Secondary) · Attack weight % · Unarmed Type (Fist / Kick)</span>
+        </div>
+        <button class="manual-warn-dismiss" onclick="dismissManualWarn('p2')" title="Dismiss">✕</button>
+      </div>
+      <div class="panel-body">
+
+        <!-- Battle Stats -->
+        <div class="form-grid">
+          <div class="section-label">Battle Stats</div>
+          <div class="field"><label>Name</label><input id="p2_name" value="Player 2" type="text"></div>
+          <div class="field"><label>Level</label><input id="p2_level" value="100" type="number" min="1"></div>
+          <div class="field"><label>Strength</label><input id="p2_str" value="50000" type="number"></div>
+          <div class="field"><label>Defense</label><input id="p2_def" value="50000" type="number"></div>
+          <div class="field"><label>Speed</label><input id="p2_spd" value="50000" type="number"></div>
+          <div class="field"><label>Dexterity</label><input id="p2_dex" value="50000" type="number"></div>
+        </div>
+
+        <!-- Weapons -->
+        <div class="form-grid" id="p2_section_weapons" style="margin-top:10px;">
+          <div class="section-label">Weapons</div>
+
+          <!-- Primary -->
+          <div class="wep-label">Primary Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p2_wep_p_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p2_wep_p_dmg" value="50" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p2_wep_p_acc" value="70" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p2_wep_p_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Mod 1</label><select id="p2_wep_p_mod1"></select></div>
+          <div class="field"><label>Mod 2</label><select id="p2_wep_p_mod2"></select></div>
+          <div class="field"><label>Bonus 1</label><select id="p2_wep_p_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p2_wep_p_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p2_wep_p_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p2_wep_p_blvl2" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Ammo Type</label>
+            <select id="p2_wep_p_ammo">
+              <option value="STD">STD</option><option value="HP">HP</option>
+              <option value="IN">IN</option><option value="TR">TR</option><option value="PI">PI</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <label class="check-item"><input type="checkbox" id="p2_wep_p_reload" checked><span>Allow Reload</span></label>
+          </div>
+
+          <!-- Secondary -->
+          <div class="wep-label">Secondary Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p2_wep_s_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p2_wep_s_dmg" value="30" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p2_wep_s_acc" value="60" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p2_wep_s_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Mod 1</label><select id="p2_wep_s_mod1"></select></div>
+          <div class="field"><label>Mod 2</label><select id="p2_wep_s_mod2"></select></div>
+          <div class="field"><label>Bonus 1</label><select id="p2_wep_s_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p2_wep_s_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p2_wep_s_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p2_wep_s_blvl2" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Ammo Type</label>
+            <select id="p2_wep_s_ammo">
+              <option value="STD">STD</option><option value="HP">HP</option>
+              <option value="IN">IN</option><option value="TR">TR</option><option value="PI">PI</option>
+            </select>
+          </div>
+          <div class="field" style="justify-content:flex-end;">
+            <label>&nbsp;</label>
+            <label class="check-item"><input type="checkbox" id="p2_wep_s_reload" checked><span>Allow Reload</span></label>
+          </div>
+
+          <!-- Melee -->
+          <div class="wep-label">Melee Weapon</div>
+          <div class="field"><label>Weapon Name</label><select id="p2_wep_m_name"></select></div>
+          <div class="field"><label>Damage</label><input id="p2_wep_m_dmg" value="40" type="number" step="0.1"></div>
+          <div class="field"><label>Accuracy</label><input id="p2_wep_m_acc" value="55" type="number" step="0.1"></div>
+          <div class="field"><label>Weapon Experience (0-100)</label><input id="p2_wep_m_exp" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 1</label><select id="p2_wep_m_bonus1"></select></div>
+          <div class="field"><label>Bonus 1 Level (%)</label><input id="p2_wep_m_blvl1" value="0" type="number" min="0" max="100"></div>
+          <div class="field"><label>Bonus 2</label><select id="p2_wep_m_bonus2"></select></div>
+          <div class="field"><label>Bonus 2 Level (%)</label><input id="p2_wep_m_blvl2" value="0" type="number" min="0" max="100"></div>
+
+          <!-- Temp -->
+          <div class="wep-label">Temporary Item</div>
+          <div class="field form-full"><label>Item</label><select id="p2_wep_t_name"></select></div>
+        </div>
+
+        <!-- Attack Settings -->
+        <div class="form-grid-4" id="p2_section_attack" style="margin-top:10px;">
+          <div class="section-label">Attack Settings (weight %)</div>
+          <div class="field"><label>Primary %</label><input id="p2_att_p" value="33" type="number" min="0" max="100"></div>
+          <div class="field"><label>Secondary %</label><input id="p2_att_s" value="33" type="number" min="0" max="100"></div>
+          <div class="field"><label>Melee %</label><input id="p2_att_m" value="34" type="number" min="0" max="100"></div>
+          <div class="field"><label>Temp %</label><input id="p2_att_t" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+        <!-- Armor -->
+        <div class="form-grid-3" style="margin-top:10px;">
+          <div class="section-label">Armor</div>
+
+          <div class="armor-slot">Helmet</div>
+          <div class="field"><label>Type</label><select id="p2_helm"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p2_helm_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p2_helm_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Body</div>
+          <div class="field"><label>Type</label><select id="p2_body"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p2_body_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p2_body_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Pants</div>
+          <div class="field"><label>Type</label><select id="p2_pants"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p2_pants_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p2_pants_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Gloves</div>
+          <div class="field"><label>Type</label><select id="p2_gloves"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p2_gloves_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p2_gloves_bl" value="0" type="number" min="0" max="100"></div>
+
+          <div class="armor-slot">Boots</div>
+          <div class="field"><label>Type</label><select id="p2_boots"></select></div>
+          <div class="field"><label>Rating (%)</label><input id="p2_boots_r" value="0" type="number" min="0" max="100" step="0.1"></div>
+          <div class="field"><label>Bonus Level (%)</label><input id="p2_boots_bl" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+        <!-- Misc -->
+        <div class="form-grid" id="p2_section_misc" style="margin-top:10px;">
+          <div class="section-label">Misc</div>
+          <div class="field"><label>Unarmed Type</label>
+            <select id="p2_fist"><option value="1">Fist</option><option value="0">Kick</option></select>
+          </div>
+          <div class="field"><label>Property Boost</label>
+            <select id="p2_property"><option value="0">No</option><option value="1">Yes (+2% dmg)</option></select>
+          </div>
+        </div>
+
+        <!-- Company -->
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="section-label">Company</div>
+          <div class="field"><label>Company</label><select id="p2_comp_name"></select></div>
+          <div class="field"><label>Star (0-10)</label><input id="p2_comp_star" value="0" type="number" min="0" max="10"></div>
+        </div>
+
+        <!-- Education -->
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="section-label">Education Boosts</div>
+          <div class="check-grid form-full">
+            <label class="check-item"><input type="checkbox" id="p2_edu_jap"><span>History (+10% Japanese blade dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_fist"><span>Self Defense (fist dmg +100%)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_melee"><span>History (+2% melee dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_dmg"><span>Biology (+1% all weapon dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_throat"><span>Biology (+10% throat dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_crit"><span>Biology (+3% crit chance)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_steroid"><span>Sports Science (+10% needle effectiveness)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_temp"><span>General Studies (+5% temp weapon dmg)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_ammo"><span>Mathematics (-25% ammo use)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_mg"><span>Combat Training (+1 Machine Gun acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_smg"><span>Combat Training (+1 SMG acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_pistol"><span>Combat Training (+1 Pistol acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_rifle"><span>Combat Training (+1 Rifle acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_ha"><span>Combat Training (+1 Heavy Artillery acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_sg"><span>Combat Training (+1 Shotgun acc)</span></label>
+            <label class="check-item"><input type="checkbox" id="p2_edu_temp_type"><span>General Studies (+1 Temp weapon acc)</span></label>
+          </div>
+          <div class="field"><label>Str Edu (%)</label><input id="p2_edu_str_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Def Edu (%)</label><input id="p2_edu_def_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Spd Edu (%)</label><input id="p2_edu_spd_p" value="0" type="number" min="0"></div>
+          <div class="field"><label>Dex Edu (%)</label><input id="p2_edu_dex_p" value="0" type="number" min="0"></div>
+        </div>
+
+        <!-- Merits -->
+        <div class="form-grid" id="p2_section_merits" style="margin-top:10px;">
+          <div class="section-label">Merits (levels)</div>
+          <div class="field"><label>Crit Rate</label><input id="p2_m_crit" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Life</label><input id="p2_m_life" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Strength</label><input id="p2_m_str" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Speed</label><input id="p2_m_spd" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Dexterity</label><input id="p2_m_dex" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Defense</label><input id="p2_m_def" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Heavy Artillery</label><input id="p2_m_ha" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Machine Gun</label><input id="p2_m_mg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Rifle</label><input id="p2_m_rifle" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>SMG</label><input id="p2_m_smg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Shotgun</label><input id="p2_m_sg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Pistol</label><input id="p2_m_pistol" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Clubbing</label><input id="p2_m_club" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Piercing</label><input id="p2_m_pierce" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Slashing</label><input id="p2_m_slash" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Temporary</label><input id="p2_m_temp" value="0" type="number" min="0" max="10"></div>
+        </div>
+
+        <!-- Faction -->
+        <div class="form-grid" id="p2_section_faction" style="margin-top:10px;">
+          <div class="section-label">Faction Upgrades</div>
+          <div class="field"><label>Aggression Speed (%)</label><input id="p2_fac_agg_spd" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Aggression Strength (%)</label><input id="p2_fac_agg_str" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Aggression Accuracy (0-10 levels)</label><input id="p2_fac_agg_acc" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Aggression Damage (%)</label><input id="p2_fac_agg_dmg" value="0" type="number" min="0" max="10"></div>
+          <div class="field"><label>Suppression Dexterity (%)</label><input id="p2_fac_sup_dex" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Suppression Defense (%)</label><input id="p2_fac_sup_def" value="0" type="number" min="0" max="20"></div>
+          <div class="field"><label>Suppression Life (%)</label><input id="p2_fac_sup_life" value="0" type="number" min="0" max="20"></div>
+        </div>
+
+        <!-- Drugs -->
+        <div class="form-grid" id="p2_section_drugs" style="margin-top:10px;">
+          <div class="section-label">Drugs</div>
+          <div class="field">
+            <label>Drug</label>
+            <select id="p2_drug">
+              <option value="None">None</option>
+              <option value="Xanax">Xanax</option>
+              <option value="Vicodin">Vicodin</option>
+              <option value="LSD">LSD</option>
+              <option value="Ketamine">Ketamine</option>
+              <option value="Speed">Speed</option>
+              <option value="PCP">PCP</option>
+              <option value="Opium">Opium</option>
+            </select>
+          </div>
+          <div class="field"><label>Addiction (%)</label><input id="p2_addiction" value="0" type="number" min="0" max="100"></div>
+        </div>
+
+      </div>
+    </div><!-- end p2 panel -->
+
+  </div><!-- end sim-grid -->
+
+  <!-- ================================================================
+       SIMULATE CONTROLS
+       ================================================================ -->
+  <div class="sim-controls">
+    <button class="btn-sim" id="simBtn" onclick="startSim()">▶ SIMULATE</button>
+    <div class="sim-n-field">
+      <label>SIMULATIONS:</label>
+      <select id="numSims">
+        <option value="1">1</option>
+        <option value="10">10</option>
+        <option value="100">100</option>
+        <option value="1000">1,000</option>
+        <option value="10000" selected>10,000</option>
+        <option value="25000">25,000</option>
+        <option value="50000">50,000</option>
+        <option value="100000">100,000</option>
+      </select>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">Ready</div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       RESULTS (hidden until sim runs)
+       ================================================================ -->
+  <div id="resultsSection" style="display:none">
+
+    <!-- Win probability bar -->
+    <div class="win-bar-section fade-in">
+      <div class="win-bar-title">Win Probability</div>
+      <div class="win-bar">
+        <div class="win-p1" id="winBarP1" style="width:50%"><span class="win-pct" id="winPctP1">50%</span></div>
+        <div class="win-draw" id="winBarDraw" style="width:5%"><span class="win-pct" id="winPctDraw" style="color:var(--text-dim);font-size:10px;">5%</span></div>
+        <div class="win-p2" id="winBarP2" style="width:45%"><span class="win-pct" id="winPctP2">45%</span></div>
+      </div>
+      <div class="win-names">
+        <span class="win-name p1-val" id="winNameP1">Player 1</span>
+        <span class="win-name" style="color:var(--text-dim)">DRAW</span>
+        <span class="win-name p2-val" id="winNameP2">Player 2</span>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-card-label" id="res_p1_win_label">P1 Win Rate</div>
+        <div class="result-card-value p1-val" id="res_p1_win">—</div>
+        <div class="result-card-sub" id="res_p1_win_n">— simulations</div>
+      </div>
+      <div class="result-card highlight">
+        <div class="result-card-label">Avg Turns</div>
+        <div class="result-card-value" id="res_avg_turns">—</div>
+        <div class="result-card-sub">turns to finish</div>
+      </div>
+      <div class="result-card">
+        <div class="result-card-label" id="res_p2_win_label">P2 Win Rate</div>
+        <div class="result-card-value p2-val" id="res_p2_win">—</div>
+        <div class="result-card-sub" id="res_p2_win_n">— simulations</div>
+      </div>
+      <div class="result-card">
+        <div class="result-card-label" id="res_p1_hp_label">P1 Avg HP Left</div>
+        <div class="result-card-value p1-val" id="res_p1_hp">—</div>
+        <div class="result-card-sub" id="res_p1_hp_pct">— %</div>
+      </div>
+      <div class="result-card">
+        <div class="result-card-label">Draw Rate</div>
+        <div class="result-card-value" id="res_draw">—</div>
+        <div class="result-card-sub">25 turn stalemate</div>
+      </div>
+      <div class="result-card">
+        <div class="result-card-label" id="res_p2_hp_label">P2 Avg HP Left</div>
+        <div class="result-card-value p2-val" id="res_p2_hp">—</div>
+        <div class="result-card-sub" id="res_p2_hp_pct">— %</div>
+      </div>
+    </div>
+
+    <!-- HP remaining bars -->
+    <div class="win-bar-section">
+      <div class="win-bar-title">Avg Remaining HP</div>
+      <div class="hp-display" style="margin-bottom:8px;">
+        <span class="hp-label p1-val" id="hpLabelP1" style="width:120px;">P1: 0</span>
+        <div class="hp-bar-wrap"><div class="hp-bar"><div class="hp-fill-p1" id="hpBarP1" style="width:50%"></div></div></div>
+        <span class="hp-label" id="hpLabelP1Pct" style="width:50px;text-align:right;">50%</span>
+      </div>
+      <div class="hp-display">
+        <span class="hp-label p2-val" id="hpLabelP2" style="width:120px;">P2: 0</span>
+        <div class="hp-bar-wrap"><div class="hp-bar"><div class="hp-fill-p2" id="hpBarP2" style="width:50%"></div></div></div>
+        <span class="hp-label" id="hpLabelP2Pct" style="width:50px;text-align:right;">50%</span>
+      </div>
+    </div>
+
+    <!-- Weapon stats tables -->
+    <div class="stats-grid">
+      <div class="panel">
+        <div class="panel-header p1" id="p1_wep_stats_title">P1 Weapon Stats (avg per fight)</div>
+        <div class="panel-body">
+          <table class="stats-table">
+            <thead><tr><th>Weapon</th><th>Turns</th><th>Damage</th><th>Misses</th><th>Hit%</th></tr></thead>
+            <tbody id="p1_wep_stats"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header p2" id="p2_wep_stats_title">P2 Weapon Stats (avg per fight)</div>
+        <div class="panel-body">
+          <table class="stats-table">
+            <thead><tr><th>Weapon</th><th>Turns</th><th>Damage</th><th>Misses</th><th>Hit%</th></tr></thead>
+            <tbody id="p2_wep_stats"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle log -->
+    <div class="log-panel">
+      <div class="log-header">
+        <span class="log-header-title">Sample Attack Log (last simulation)</span>
+        <button class="collapsible-btn" onclick="toggleLog()">▼ Show/Hide</button>
+      </div>
+      <div class="collapse-content" id="logCollapse">
+        <div class="log-body" id="logBody"></div>
+      </div>
+    </div>
+
+  </div><!-- end resultsSection -->
+
+</div><!-- end main -->
+
+<!-- ================================================================
+     SCRIPTS — load order matters
+     ================================================================ -->
+<script src="data.js"></script>
+<script src="armor.js"></script>
+<script src="combat.js"></script>
+<script src="sim.js"></script>
+<script src="ui.js"></script>
+
+</body>
+</html>
