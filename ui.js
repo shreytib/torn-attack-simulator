@@ -14,8 +14,11 @@ function populateSelects() {
     const mSel = document.getElementById(`${prefix}_wep_m_name`);
     const tSel = document.getElementById(`${prefix}_wep_t_name`);
 
+    pSel.add(new Option('None', 'None'));
     Object.keys(WEAPON_PRIMARY).forEach(n   => pSel.add(new Option(n, n)));
+    sSel.add(new Option('None', 'None'));
     Object.keys(WEAPON_SECONDARY).forEach(n => sSel.add(new Option(n, n)));
+    mSel.add(new Option('None', 'None'));
     Object.keys(WEAPON_MELEE).forEach(n     => mSel.add(new Option(n, n)));
     TEMP_ITEMS.forEach(n                     => tSel.add(new Option(n, n)));
 
@@ -565,6 +568,15 @@ function applyAPIData(prefix, data) {
       d.spd === drugSig.spd && d.dex === drugSig.dex
     );
     g('drug', matchedDrug ? matchedDrug.name : 'None');
+
+    // Addiction modifier — use strength stat (all stats share the same addiction %)
+    // API value is negative (e.g. -5 = -5%), UI stores as positive
+    const getAddictionMod = (stat) => {
+      const m = (bstats[stat]?.modifiers || []).find(x => x.type === 'Addiction');
+      return m ? m.value : 0;
+    };
+    const addictionVal = getAddictionMod('strength');
+    g('addiction', Math.abs(addictionVal));
   }
 
   // ── Job / Company ─────────────────────────────────────────────────────
@@ -830,7 +842,6 @@ const MANUAL_WARN_FIELD_IDS = [
   'att_m',          // Attack weight — Melee %
   'att_t',          // Attack weight — Temp %
   'fist',           // Unarmed Type
-  'addiction',      // Drug addiction % — not in API
 ];
 
 function showManualWarn(prefix) {
@@ -863,9 +874,9 @@ function dismissManualWarn(prefix) {
 }
 
 // -----------------------------------------------------------------------
-// savePlayerConfig — serialize all panel inputs to a JSON file download
+// savePlayerConfig — serialize all panel inputs, prompt user for save location
 // -----------------------------------------------------------------------
-function savePlayerConfig(prefix) {
+async function savePlayerConfig(prefix) {
   const panel = document.getElementById(`${prefix}panel`);
   const config = { _prefix: prefix, _version: 1 };
 
@@ -880,7 +891,27 @@ function savePlayerConfig(prefix) {
 
   const playerName = document.getElementById(`${prefix}_name`)?.value || prefix;
   const filename   = `torn_sim_${playerName.replace(/[^a-z0-9_-]/gi, '_')}.json`;
-  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const json       = JSON.stringify(config, null, 2);
+
+  // Use File System Access API if available (shows native save dialog)
+  if (window.showSaveFilePicker) {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }],
+      });
+      const writable = await fileHandle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return; // user cancelled — do nothing
+      // Fall through to legacy download on any other error
+    }
+  }
+
+  // Fallback: trigger browser download (no location choice)
+  const blob = new Blob([json], { type: 'application/json' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = filename;

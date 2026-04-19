@@ -312,9 +312,11 @@ function prepPlayer(raw) {
   if (p.wep_p.bonus === 'Specialist' || p.wep_p.bonus2 === 'Specialist') p.wep_p.info.clips = 1;
   if (p.wep_s.bonus === 'Specialist' || p.wep_s.bonus2 === 'Specialist') p.wep_s.info.clips = 1;
 
-  // Initialise ammo to full clip
+  // Initialise ammo to full clip; decrement clips since one is already loaded
   p.wep_p.info.ammo = p.wep_p.info.clip_size;
+  p.wep_p.info.clips--;
   p.wep_s.info.ammo = p.wep_s.info.clip_size;
+  p.wep_s.info.clips--;
 
   // Apply ammo control (ROF reduction)
   ammoControl(p, 'p');
@@ -487,16 +489,16 @@ function runOneSim(heroInput, villainInput, logDetail) {
       }
     }
 
-    // ---- P2 takes DOT before P1 attacks ----
-    const dot_p2 = applyDOT(p2, turn);
-    console.log('[runOneSim] dot_p2:', dot_p2);
-    if (logDetail) log.push(...dot_p2);
-    console.log('[runOneSim] log so far:', log);
-
     // ---- P1 attacks P2 ----
     const res1 = doAttack(p1, p2, wep1, wep2, turn, false);
     console.log('[runOneSim] res1:', res1);
     if (logDetail) log.push(...res1.msgs);
+    console.log('[runOneSim] log so far:', log);
+
+    // ---- P2 takes DOT before P2 attacks ----
+    const dot_p2 = applyDOT(p2, turn);
+    console.log('[runOneSim] dot_p2:', dot_p2);
+    if (logDetail) log.push(...dot_p2);
     console.log('[runOneSim] log so far:', log);
 
     // ---- P1 heals (Gas Station) ----
@@ -515,16 +517,16 @@ function runOneSim(heroInput, villainInput, logDetail) {
       break;
     }
 
-    // ---- P1 takes DOT before P2 attacks ----
-    const dot_p1 = applyDOT(p1, turn);
-    console.log('[runOneSim] dot_p1:', dot_p1);
-    if (logDetail) log.push(...dot_p1);
-    console.log('[runOneSim] log so far:', log);
-
     // ---- P2 attacks P1 ----
     const res2 = doAttack(p2, p1, wep2, wep1, turn, false);
     console.log('[runOneSim] res2:', res2);
     if (logDetail) log.push(...res2.msgs);
+    console.log('[runOneSim] log so far:', log);
+
+    // ---- P1 takes DOT after P2 attacks ----
+    const dot_p1 = applyDOT(p1, turn);
+    console.log('[runOneSim] dot_p1:', dot_p1);
+    if (logDetail) log.push(...dot_p1);
     console.log('[runOneSim] log so far:', log);
 
     // ---- P2 heals (Gas Station) ----
@@ -551,9 +553,9 @@ function runOneSim(heroInput, villainInput, logDetail) {
 
     // ---- Restore light mod acc penalties at end of turn ----
     if (p1LightPenalty && ['p','s','m'].includes(wep1)) p1[`wep_${wep1}`].acc += p1LightPenalty;
-    console.log(`Running [runOneSim] - p1[wep_${wep1}].acc: ${p1[`wep_${wep1}`].acc}`);
+    console.log(`Running [runOneSim] - p1[wep_${wep1}].acc: ${p1[`wep_${wep1}`]?.acc || "NA"}`);
     if (p2LightPenalty && ['p','s','m'].includes(wep2)) p2[`wep_${wep2}`].acc += p2LightPenalty;
-    console.log(`Running [runOneSim] - p2[wep_${wep2}].acc: ${p2[`wep_${wep2}`].acc}`);
+    console.log(`Running [runOneSim] - p2[wep_${wep2}].acc: ${p2[`wep_${wep2}`]?.acc || "NA"}`);
   }
 
   if (winner === 0 && logDetail) {

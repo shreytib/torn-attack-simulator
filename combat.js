@@ -719,6 +719,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
     return { msgs: [{ text:`${attacker.name} is stunned and loses their turn.`, cls:'miss' }] };
   }
 
+  let EOD_proc_text = false;
   // ----------------------------------------------------------------
   // TEMP ITEMS
   // ----------------------------------------------------------------
@@ -799,13 +800,19 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       const hc = calcHitChance(attacker, defender, 't', turn);
       console.log(`Running [doAttack] - hc: ${hc}`);
       if (Math.random() < hc) {
-        const { damage } = calcDamage(attacker, defender, 'chest', 't');
+        let { damage, armor_used, punctured } = calcDamage(attacker, defender, 'chest', 't');
         console.log(`Running [doAttack] - damage: ${damage}`);
+        // EOD check: chance to absorb the hit entirely (Puncture overrides EOD)
+        if (!punctured && eodProc(defender, armor_used)) {
+          damage = 0;
+          console.log(`Running [doAttack] - damage: ${damage}`);
+          EOD_proc_text = true;
+        }
         defender.health -= damage;
         console.log(`Running [doAttack] - defender.health: ${defender.health}`);
         attacker.wep_t.tot_dmg = (attacker.wep_t.tot_dmg || 0) + damage;
         console.log(`Running [doAttack] - attacker.wep_t.tot_dmg: ${attacker.wep_t.tot_dmg}`);
-        if (tn === 'Molotov Cocktail') {
+        if (tn === 'Molotov Cocktail' && damage > 0) {
           defender.severe_burn_turn  = 3;
           console.log(`Running [doAttack] - defender.severe_burn_turn: ${defender.severe_burn_turn}`);
           defender.severe_burn_dmg   = damage;
@@ -815,7 +822,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
           msgs.push({ text:`${attacker.name} threw ${tn} on ${defender.name} for ${damage} dmg (burning).`, cls:'hit' });
           console.log('[doAttack] msgs:', msgs);
         } else {
-          msgs.push({ text:`${attacker.name} threw ${tn} on ${defender.name} for ${damage} dmg.`, cls:'hit' });
+          msgs.push({ text:`${attacker.name} threw ${tn} on ${defender.name} for ${damage} dmg${EOD_proc_text ? " EOD BLOCKED" : ""}.`, cls: EOD_proc_text ? 'buff' : 'hit' });
           console.log('[doAttack] msgs:', msgs);
         }
       } else {
@@ -835,16 +842,21 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
     if (Math.random() < hc) {
       const bp = getBodyPart(attacker, wep);
       console.log(`Running [doAttack] - bp: ${bp}`);
-      const { damage } = calcDamage(attacker, defender, bp, wep);
+      let { damage, armor_used, punctured } = calcDamage(attacker, defender, bp, wep);
       console.log(`Running [doAttack] - damage: ${damage}`);
+      if (!punctured && eodProc(defender, armor_used)) {
+        damage = 0;
+        console.log(`Running [doAttack] - damage: ${damage}`);
+        EOD_proc_text = true;
+      }
       attacker.last_wep_hit = true;
       console.log(`Running [doAttack] - attacker.last_wep_hit: ${attacker.last_wep_hit}`);
       defender.health -= damage;
       console.log(`Running [doAttack] - defender.health: ${defender.health}`);
-      msgs.push({ text:`${attacker.name} ${wep}s ${defender.name} on the ${bp} for ${damage} dmg.`, cls: damage > 0 ? 'hit' : 'miss' });
+      msgs.push({ text:`${attacker.name} ${wep}s ${defender.name} on the ${bp} for ${damage} dmg${EOD_proc_text ? " EOD BLOCKED" : ""}.`, cls: EOD_proc_text ? 'buff' : 'hit' });
       console.log('[doAttack] msgs:', msgs);
     } else {
-      msgs.push({ text:`${attacker.name} ${wep}s but misses ${defender.name}.`, cls:'miss' });
+      msgs.push({ text:`${attacker.name} ${wep}s on the ${bp} but misses ${defender.name}.`, cls:'miss' });
       console.log('[doAttack] msgs:', msgs);
     }
     return { msgs };
@@ -888,13 +900,12 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
     }
 
     const rounds = Math.min(getRounds(attacker, wep), wi.info.ammo);
-      console.log(`Running [doAttack] - rounds: ${rounds}`);
+    console.log(`Running [doAttack] - rounds: ${rounds}`);
     const hc     = calcHitChance(attacker, defender, wep, turn);
-      console.log(`Running [doAttack] - hc: ${hc}`);
+    console.log(`Running [doAttack] - hc: ${hc}`);
 
     // Sure Shot: chance to force a hit
-    const sureShot = (wi.bonus === 'Sure Shot' && Math.random() < wi.level) ||
-                     (wi.bonus2 === 'Sure Shot' && Math.random() < wi.level2);
+    const sureShot = (wi.bonus === 'Sure Shot' && Math.random() < wi.level) || (wi.bonus2 === 'Sure Shot' && Math.random() < wi.level2);
     console.log(`Running [doAttack] - sureShot: ${sureShot}`);
 
     if (sureShot || Math.random() < hc) {
@@ -905,8 +916,31 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
 
       const bp = getBodyPart(attacker, wep);
       console.log(`Running [doAttack] - bp: ${bp}`);
-      const { damage, armor_used, punctured } = calcDamage(attacker, defender, bp, wep);
+      let { damage, armor_used, punctured } = calcDamage(attacker, defender, bp, wep);
       console.log(`Running [doAttack] - damage: ${damage}, armor_used: ${armor_used}, punctured: ${punctured}`);
+
+      if (!punctured && eodProc(defender, armor_used)) {
+        damage = 0;
+        console.log(`Running [doAttack] - damage: ${damage}`);
+        EOD_proc_text = true;
+      }
+
+      // Execute: kill exactly to 1 HP
+      const execLv = wi.bonus === 'Execute' ? wi.level : (wi.bonus2 === 'Execute' ? wi.level2 : 0);
+      console.log(`Running [doAttack] - execLv: ${execLv}`);
+      console.log(`Running [doAttack] - damage: ${damage}`);
+      if (execLv && defender.health <= execLv * defender.max_hp && !bonus_hit && !EOD_proc_text) {
+        damage = Math.max(0, defender.health - 1);
+        console.log(`Running [doAttack] - damage: ${damage}`);
+        msgs.push({ text:`${attacker.name} fires ${rounds}${wi.s_ammo === 'STD' ? "": ` ${wi.s_ammo}`} rds of ${wi.name} — executes ${defender.name} for ${damage} dmg!`, cls:'hit-crit' });
+        console.log('[doAttack] msgs:', msgs);
+      }
+      else {
+        const isCrit = ['head','heart','throat'].includes(bp);
+        console.log(`Running [doAttack] - isCrit: ${isCrit}`);
+        msgs.push({ text:`${attacker.name} fires ${rounds} ${wi.s_ammo === 'STD' ? "": ` ${wi.s_ammo}`} rds of ${wi.name} — hits ${bp}${punctured?' (punctured)':''}${sureShot?' (sure shot)':''} for ${damage} dmg${EOD_proc_text ? " EOD BLOCKED" : ""}.`, cls: EOD_proc_text ? 'buff' : (isCrit ? 'hit-crit' : 'hit') });
+        console.log('[doAttack] msgs:', msgs);
+      }
 
       // Disarm (not on bonus hit, not on turn 1)
       if (turn !== 1 && damage > 0 && !bonus_hit && ['arms','hands'].includes(bp)) {
@@ -920,23 +954,6 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
         }
       }
 
-      // Execute: kill exactly to 1 HP
-      const execLv = wi.bonus === 'Execute' ? wi.level : (wi.bonus2 === 'Execute' ? wi.level2 : 0);
-      console.log(`Running [doAttack] - execLv: ${execLv}`);
-      let finalDamage = damage;
-      console.log(`Running [doAttack] - finalDamage: ${finalDamage}`);
-      if (execLv && defender.health <= execLv * defender.max_hp && !bonus_hit) {
-        finalDamage = Math.max(0, defender.health - 1);
-        console.log(`Running [doAttack] - finalDamage: ${finalDamage}`);
-        msgs.push({ text:`${attacker.name} executes ${defender.name} with ${wi.name} for ${finalDamage} dmg!`, cls:'hit-crit' });
-        console.log('[doAttack] msgs:', msgs);
-      } else {
-        const isCrit = ['head','heart','throat'].includes(bp);
-        console.log(`Running [doAttack] - isCrit: ${isCrit}`);
-        msgs.push({ text:`${attacker.name} fires ${rounds}rds of ${wi.name} — hits ${bp}${punctured?' (punctured)':''}${sureShot?' (sure shot)':''} for ${finalDamage} dmg.`, cls: isCrit ? 'hit-crit' : 'hit' });
-        console.log('[doAttack] msgs:', msgs);
-      }
-
       // On-hit bonuses (not on bonus hits)
       if (damage > 0 && !bonus_hit) {
         msgs.push(...applyBonusOnHit(attacker, defender, wep, bp, damage, turn, true));
@@ -945,20 +962,12 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
         console.log('[doAttack] msgs:', msgs);
       }
 
-      // EOD check: chance to absorb the hit entirely (Puncture overrides EOD)
-      if (!punctured && eodProc(defender, armor_used)) {
-        finalDamage = 0;
-        console.log(`Running [doAttack] - finalDamage: ${finalDamage}`);
-        msgs.push({ text:`${defender.name}'s EOD BLOCKED!`, cls:'buff' });
-        console.log('[doAttack] msgs:', msgs);
-      }
-
       // Hazardous: chance to injure attacker
-      if (!bonus_hit) {
+      if (!bonus_hit && damage > 0) {
         const hlv = wi.bonus === 'Hazardous' ? wi.level : (wi.bonus2 === 'Hazardous' ? wi.level2 : 0);
         console.log(`Running [doAttack] - hlv: ${hlv}`);
         if (hlv && Math.random() < hlv) {
-          const injury = Math.min(finalDamage / 4, attacker.health - 1);
+          const injury = Math.min(damage / 4, attacker.health - 1);
           console.log(`Running [doAttack] - injury: ${injury}`);
           attacker.health -= injury;
           console.log(`Running [doAttack] - attacker.health : ${attacker.health }`);
@@ -967,11 +976,11 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
         }
       }
 
-      defender.health -= finalDamage;
+      defender.health -= damage;
       console.log(`Running [doAttack] - defender.health: ${defender.health}`);
       wi.tot_turn++;
       console.log(`Running [doAttack] - wi.tot_turn: ${wi.tot_turn}`);
-      wi.tot_dmg += finalDamage;
+      wi.tot_dmg += damage;
       console.log(`Running [doAttack] - wi.tot_dmg: ${wi.tot_dmg}`);
 
       // Double Tap: one extra attack on hit
@@ -1005,7 +1014,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       // Miss
       wi.info.ammo -= rounds;
       console.log(`Running [doAttack] - wi.info.ammo: ${wi.info.ammo}`);
-      msgs.push({ text:`${attacker.name} fires ${rounds}rds of ${wi.name} but misses ${defender.name}.`, cls:'miss' });
+      msgs.push({ text:`${attacker.name} fires ${rounds} ${wi.s_ammo === 'STD' ? "": ` ${wi.s_ammo}`} rds of ${wi.name} but misses ${defender.name}.`, cls:'miss' });
       console.log('[doAttack] msgs:', msgs);
       wi.tot_turn++;
       console.log(`Running [doAttack] - wi.tot_turn: ${wi.tot_turn}`);
@@ -1062,7 +1071,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
           wi.tot_turn++; wi.tot_miss++;
           console.log(`Running [doAttack] - wi.tot_turn: ${wi.tot_turn}`);
           console.log(`Running [doAttack] - wi.tot_miss: ${wi.tot_miss}`);
-          msgs.push({ text:`${defender.name} parries ${attacker.name}'s ${wi.name}!`, cls:'buff' });
+          msgs.push({ text:`${attacker.name} attacks with ${wi.name} but ${defender.name} parries!`, cls:'buff' });
           console.log('[doAttack] msgs:', msgs);
           return { msgs };
         }
@@ -1072,8 +1081,27 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       console.log(`Running [doAttack] - attacker.last_wep_hit: ${attacker.last_wep_hit}`);
       const bp = getBodyPart(attacker, wep);
       console.log(`Running [doAttack] - bp: ${bp}`);
-      const { damage, armor_used, punctured } = calcDamage(attacker, defender, bp, wep);
+      let { damage, armor_used, punctured } = calcDamage(attacker, defender, bp, wep);
       console.log(`Running [doAttack] - damage: ${damage}, armor_used: ${armor_used}, punctured: ${punctured}`);
+
+      if (!punctured && eodProc(defender, armor_used)) {
+        damage = 0;
+        console.log(`Running [doAttack] - damage: ${damage}`);
+        EOD_proc_text = true;
+      }
+
+      const isCrit = ['head','heart','throat'].includes(bp);
+      console.log(`Running [doAttack] - isCrit: ${isCrit}`);
+      msgs.push({ text:`${attacker.name} hits ${defender.name} with ${wi.name} on the ${bp}${punctured?' (punctured)':''} for ${damage} dmg${EOD_proc_text ? " EOD BLOCKED" : ""}.`, cls: EOD_proc_text ? 'buff' : (isCrit ? 'hit-crit' : 'hit') });
+      console.log('[doAttack] msgs:', msgs);
+
+      // On-hit bonuses (not on bonus hits)
+      if (damage > 0 && !bonus_hit) {
+        msgs.push(...applyBonusOnHit(attacker, defender, wep, bp, damage, turn, true));
+        console.log('[doAttack] msgs:', msgs);
+        msgs.push(...applyBonusOnHit(attacker, defender, wep, bp, damage, turn, false));
+        console.log('[doAttack] msgs:', msgs);
+      }
 
       // Disarm (not on bonus hit, not on turn 1)
       if (turn !== 1 && damage > 0 && !bonus_hit && ['arms','hands'].includes(bp)) {
@@ -1087,34 +1115,12 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
         }
       }
 
-      const isCrit = ['head','heart','throat'].includes(bp);
-      console.log(`Running [doAttack] - isCrit: ${isCrit}`);
-      msgs.push({ text:`${attacker.name} hits ${defender.name} with ${wi.name} on the ${bp}${punctured?' (punctured)':''} for ${damage} dmg.`, cls: isCrit ? 'hit-crit' : 'hit' });
-      console.log('[doAttack] msgs:', msgs);
-
-      // On-hit bonuses (not on bonus hits)
-      if (damage > 0 && !bonus_hit) {
-        msgs.push(...applyBonusOnHit(attacker, defender, wep, bp, damage, turn, true));
-        console.log('[doAttack] msgs:', msgs);
-        msgs.push(...applyBonusOnHit(attacker, defender, wep, bp, damage, turn, false));
-        console.log('[doAttack] msgs:', msgs);
-      }
-
-      // EOD check (Puncture overrides EOD)
-      if (!punctured && eodProc(defender, armor_used)) {
-        msgs.push({ text:`${defender.name}'s EOD BLOCKED!`, cls:'buff' });
-        console.log('[doAttack] msgs:', msgs);
-        wi.tot_turn++;
-        console.log(`Running [doAttack] - wi.tot_turn: ${wi.tot_turn}`);
-        return { msgs };
-      }
-
-      // Bloodlust: melee lifesteal
-      if (!bonus_hit) {
+      // Bloodlust: melee life heal
+      if (!bonus_hit && damage > 0) {
         const blLv = wi.bonus === 'Bloodlust' ? wi.level : (wi.bonus2 === 'Bloodlust' ? wi.level2 : 0);
         console.log(`Running [doAttack] - blLv: ${blLv}`);
         if (blLv) {
-          const regen = Math.min(Math.floor(damage * blLv), Math.max(0, defender.health - 1));
+          const regen = Math.min(Math.floor(damage * blLv), Math.max(0, defender.health));
           console.log(`Running [doAttack] - regen: ${regen}`);
           if (regen > 0) {
             attacker.health = Math.min(attacker.max_hp, attacker.health + regen);
@@ -1126,7 +1132,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       }
 
       // Double-edged: attacker takes self-damage
-      if (attacker.double_edge && !bonus_hit) {
+      if (attacker.double_edge && !bonus_hit && damage > 0) {
         const de = Math.min(damage / 4, attacker.health - 1);
         console.log(`Running [doAttack] - de: ${de}`);
         attacker.health -= de;
@@ -1202,12 +1208,12 @@ function applyDOT(player, turn) {
       player[turnKey]--;
       console.log(`Running [applyDOT] - player[turnKey]: ${player[turnKey]}`);
       console.log(`Running [applyDOT] - player.health: ${player.health}`);
-      dmg = Math.min(dmg, player.health - 1);
+      //dmg = Math.min(dmg, player.health - 1);
       console.log(`Running [applyDOT] - dmg: ${dmg}`);
       if (dmg > 0) {
         player.health -= dmg;
         console.log(`Running [applyDOT] - player.health: ${player.health}`);
-        msgs.push({ text:`${label} deals ${dmg} to ${player.name}.`, cls:'bleed' });
+        msgs.push({ text:`${label} deals ${dmg} damage to ${player.name}.`, cls:'bleed' });
         console.log('[applyDOT] msgs:', msgs);
       }
     }
