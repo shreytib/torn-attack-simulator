@@ -94,7 +94,7 @@ const WEAPON_MELEE = {
   'Kodachi':                { jap:true,  weapon_type:'Slashing' },
   'Leather Bullwhip':       { jap:false, weapon_type:'Slashing' },
   'Macana':                 { jap:false, weapon_type:'Piercing' },
-  'Metal Nunchakus':        { jap:false, weapon_type:'Clubbing' },
+  'Metal Nunchaku':         { jap:false, weapon_type:'Clubbing' },
   'Naval Cutlass':          { jap:false, weapon_type:'Slashing' },
   'Ninja Claws':            { jap:false, weapon_type:'Piercing' },
   'Pen Knife':              { jap:false, weapon_type:'Piercing' },
@@ -105,7 +105,7 @@ const WEAPON_MELEE = {
   'Sledgehammer':           { jap:false, weapon_type:'Clubbing' },
   'Spear':                  { jap:false, weapon_type:'Piercing' },
   'Swiss Army Knife':       { jap:false, weapon_type:'Piercing' },
-  'Wooden Nunchakus':       { jap:false, weapon_type:'Clubbing' },
+  'Wooden Nunchaku':        { jap:false, weapon_type:'Clubbing' },
   'Yasukuni Sword':         { jap:true,  weapon_type:'Slashing' },
 };
 
