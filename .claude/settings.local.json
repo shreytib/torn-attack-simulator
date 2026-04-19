@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Measure-Object -Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\data.js' | Select-Object -Last 30\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Select-Object -Last 10\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\torn_sim.html' | Select-String 'Has clips|Allow Reload|p2_wep_p_reload|p2_wep_s_reload' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\torn_sim.html' | Select-String 'p2_section_|p2_manual_warn|p2_wep_s_reload' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\torn_sim.html' | Select-String 'p2_section_|section_weapons.*p2|section_attack.*p2|section_misc.*p2|section_faction.*p2|section_merits.*p2' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Measure-Object -Line; Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Select-Object -Last 20\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Select-String 'bonusLvl|applyWepBonuses|applyArmor|validBonus|stats\\\\.damage|stats\\\\.accuracy|COMPANY_TYPE_ID_MAP' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Select-String 'savePlayerConfig|loadPlayerConfig|dismissManualWarn|showManualWarn|section-review|MANUAL_WARN' | Select-Object LineNumber, Line\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Shrey\\\\OneDrive - Nanyang Technological University\\\\Documents\\\\torn\\\\attacking_new\\\\ui.js' | Select-String 'COMPANY_TYPE_ID_MAP|EDU_CHECKBOX_MAP|melee_dmg' | Select-Object LineNumber, Line\")",
+      "WebFetch(domain:api.torn.com)"
+    ]
+  }
+}

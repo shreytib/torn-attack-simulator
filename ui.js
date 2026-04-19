@@ -222,6 +222,19 @@ function readPlayer(prefix) {
 }
 
 
+// -----------------------------------------------------------------------
+// ToS modal
+// -----------------------------------------------------------------------
+function showToS() {
+  document.getElementById('tosBackdrop').classList.add('open');
+}
+function hideToS(e) {
+  // Close on backdrop click (not on modal itself) or when called directly
+  if (!e || e.target === document.getElementById('tosBackdrop')) {
+    document.getElementById('tosBackdrop').classList.remove('open');
+  }
+}
+
 function toggleLog() {
   const c = document.getElementById('logCollapse');
   c.style.display = c.style.display === 'none' ? 'block' : 'none';
@@ -241,6 +254,8 @@ function startSim() {
   document.getElementById('resultsSection').style.display = 'none';
   document.getElementById('progressFill').style.width = '0%';
   document.getElementById('progressText').textContent  = 'Starting...';
+  document.getElementById('progressTime').textContent  = '';
+  const simStartTime = performance.now();
 
   const heroInput    = readPlayer('p1');
   const villainInput = readPlayer('p2');
@@ -294,9 +309,11 @@ function startSim() {
 
     done = end;
     const pct = (done / N * 100).toFixed(1);
+    const elapsed = ((performance.now() - simStartTime) / 1000).toFixed(3);
     document.getElementById('progressFill').style.width  = pct + '%';
     document.getElementById('progressText').textContent  =
       `${done.toLocaleString()} / ${N.toLocaleString()} simulations`;
+    document.getElementById('progressTime').textContent  = `Time Elapsed: ${elapsed}s`;
 
     if (done < N) {
       setTimeout(runBatch, 0);
