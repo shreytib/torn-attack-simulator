@@ -758,7 +758,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       console.log(`Running [doAttack] - eff: ${eff}`);
       attacker.passive.speed += eff;
       console.log(`Running [doAttack] - attacker.passive.speed: ${attacker.passive.speed}`);
-      msgs.push({ text:`${attacker.name} used Melatonin (+${eff.toFixed(1)} speed).`, cls:'buff' });
+      msgs.push({ text:`${attacker.name} used Melatonin.`, cls:'buff' });
       console.log('[doAttack] msgs:', msgs);
 
     } else if (tn === 'Serotonin') {
@@ -772,7 +772,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       console.log(`Running [doAttack] - hg: ${hg}`);
       attacker.health += hg;
       console.log(`Running [doAttack] - attacker.health: ${attacker.health}`);
-      msgs.push({ text:`${attacker.name} used Serotonin, healed ${Math.floor(hg)} HP (+${eff.toFixed(1)} def).`, cls:'buff' });
+      msgs.push({ text:`${attacker.name} used Serotonin and healed ${Math.floor(hg)} HP.`, cls:'buff' });
       console.log('[doAttack] msgs:', msgs);
 
     } else if (tn === 'Epinephrine') {
@@ -782,7 +782,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       console.log(`Running [doAttack] - eff: ${eff}`);
       attacker.passive.strength += eff;
       console.log(`Running [doAttack] - attacker.passive.strength: ${attacker.passive.strength}`);
-      msgs.push({ text:`${attacker.name} used Epinephrine (+${eff.toFixed(1)} str).`, cls:'buff' });
+      msgs.push({ text:`${attacker.name} used Epinephrine.`, cls:'buff' });
       console.log('[doAttack] msgs:', msgs);
 
     } else if (tn === 'Tyrosine') {
@@ -792,7 +792,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       console.log(`Running [doAttack] - eff: ${eff}`);
       attacker.passive.dexterity += eff;
       console.log(`Running [doAttack] - attacker.passive.dexterity: ${attacker.passive.dexterity}`);
-      msgs.push({ text:`${attacker.name} used Tyrosine (+${eff.toFixed(1)} dex).`, cls:'buff' });
+      msgs.push({ text:`${attacker.name} used Tyrosine.`, cls:'buff' });
       console.log('[doAttack] msgs:', msgs);
 
     // Damaging throwables
