@@ -856,7 +856,7 @@ function doAttack(attacker, defender, wep, wep2, turn, bonus_hit) {
       msgs.push({ text:`${attacker.name} ${wep}s ${defender.name} on the ${bp} for ${damage} dmg${EOD_proc_text ? " EOD BLOCKED" : ""}.`, cls: EOD_proc_text ? 'buff' : 'hit' });
       console.log('[doAttack] msgs:', msgs);
     } else {
-      msgs.push({ text:`${attacker.name} ${wep}s on the ${bp} but misses ${defender.name}.`, cls:'miss' });
+      msgs.push({ text:`${attacker.name} ${wep}s but misses ${defender.name}.`, cls:'miss' });
       console.log('[doAttack] msgs:', msgs);
     }
     return { msgs };
