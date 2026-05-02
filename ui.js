@@ -223,6 +223,43 @@ function readPlayer(prefix) {
 
 
 // -----------------------------------------------------------------------
+// Max All helpers
+// -----------------------------------------------------------------------
+function maxMerits(prefix) {
+  ['m_crit','m_life','m_str','m_spd','m_dex','m_def',
+   'm_ha','m_mg','m_rifle','m_smg','m_sg','m_pistol',
+   'm_club','m_pierce','m_slash','m_temp'].forEach(id => {
+    const el = document.getElementById(`${prefix}_${id}`);
+    if (el) el.value = 10;
+  });
+}
+
+function maxEducation(prefix) {
+  ['edu_jap','edu_fist','edu_melee','edu_dmg','edu_throat','edu_crit',
+   'edu_steroid','edu_temp','edu_ammo','edu_mg','edu_smg','edu_pistol',
+   'edu_rifle','edu_ha','edu_sg','edu_temp_type'].forEach(id => {
+    const el = document.getElementById(`${prefix}_${id}`);
+    if (el) el.checked = true;
+  });
+  const sv = (id, val) => { const el = document.getElementById(`${prefix}_${id}`); if (el) el.value = val; };
+  sv('edu_str_p',  5);
+  sv('edu_def_p', 11);
+  sv('edu_spd_p', 14);
+  sv('edu_dex_p', 19);
+}
+
+function maxFaction(prefix) {
+  const sv = (id, val) => { const el = document.getElementById(`${prefix}_${id}`); if (el) el.value = val; };
+  sv('fac_agg_spd', 20);
+  sv('fac_agg_str', 20);
+  sv('fac_agg_acc', 10);
+  sv('fac_agg_dmg', 10);
+  sv('fac_sup_dex', 20);
+  sv('fac_sup_def', 20);
+  sv('fac_sup_life', 10);
+}
+
+// -----------------------------------------------------------------------
 // ToS modal
 // -----------------------------------------------------------------------
 function showToS() {

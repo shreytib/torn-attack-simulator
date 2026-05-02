@@ -92,7 +92,15 @@
     color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase;
     padding: 8px 0 4px; border-bottom: 1px solid var(--border);
     margin-bottom: 8px; grid-column: 1/-1;
+    display: flex; justify-content: space-between; align-items: center;
   }
+  .max-btn {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px;
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 2px 7px; border-radius: 2px; cursor: pointer; text-transform: uppercase;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .max-btn:hover { color: var(--accent); border-color: var(--accent); }
   /* WEAPON SUB-SECTION LABEL */
   .wep-label {
     font-family: var(--font-head); font-size: 10px; font-weight: 600;
@@ -372,10 +380,10 @@
           <div class="section-label">Battle Stats</div>
           <div class="field"><label>Name</label><input id="p1_name" value="Player 1" type="text"></div>
           <div class="field"><label>Level</label><input id="p1_level" value="100" type="number" min="1"></div>
-          <div class="field"><label>Strength</label><input id="p1_str" value="50000" type="number"></div>
-          <div class="field"><label>Defense</label><input id="p1_def" value="50000" type="number"></div>
-          <div class="field"><label>Speed</label><input id="p1_spd" value="50000" type="number"></div>
-          <div class="field"><label>Dexterity</label><input id="p1_dex" value="50000" type="number"></div>
+          <div class="field"><label>Strength</label><input id="p1_str" value="1000000000" type="number"></div>
+          <div class="field"><label>Defense</label><input id="p1_def" value="1000000000" type="number"></div>
+          <div class="field"><label>Speed</label><input id="p1_spd" value="1000000000" type="number"></div>
+          <div class="field"><label>Dexterity</label><input id="p1_dex" value="1000000000" type="number"></div>
         </div>
 
         <!-- Weapons -->
@@ -503,7 +511,7 @@
 
         <!-- Education -->
         <div class="form-grid" style="margin-top:10px;">
-          <div class="section-label">Education Boosts</div>
+          <div class="section-label">Education Boosts <button class="max-btn" onclick="maxEducation('p1')">Max All</button></div>
           <div class="check-grid form-full">
             <label class="check-item"><input type="checkbox" id="p1_edu_jap"><span>History (+10% Japanese blade dmg)</span></label>
             <label class="check-item"><input type="checkbox" id="p1_edu_fist"><span>Self Defense (fist dmg +100%)</span></label>
@@ -530,7 +538,7 @@
 
         <!-- Merits -->
         <div class="form-grid" id="p1_section_merits" style="margin-top:10px;">
-          <div class="section-label">Merits (levels)</div>
+          <div class="section-label">Merits (Levels 0-10) <button class="max-btn" onclick="maxMerits('p1')">Max All</button></div>
           <div class="field"><label>Crit Rate</label><input id="p1_m_crit" value="0" type="number" min="0" max="10"></div>
           <div class="field"><label>Life</label><input id="p1_m_life" value="0" type="number" min="0" max="10"></div>
           <div class="field"><label>Strength</label><input id="p1_m_str" value="0" type="number" min="0" max="10"></div>
@@ -551,7 +559,7 @@
 
         <!-- Faction -->
         <div class="form-grid" id="p1_section_faction" style="margin-top:10px;">
-          <div class="section-label">Faction Upgrades</div>
+          <div class="section-label">Faction Upgrades <button class="max-btn" onclick="maxFaction('p1')">Max All</button></div>
           <div class="field"><label>Aggression Speed (%)</label><input id="p1_fac_agg_spd" value="0" type="number" min="0" max="20"></div>
           <div class="field"><label>Aggression Strength (%)</label><input id="p1_fac_agg_str" value="0" type="number" min="0" max="20"></div>
           <div class="field"><label>Aggression Accuracy (0-10 levels)</label><input id="p1_fac_agg_acc" value="0" type="number" min="0" max="10"></div>
@@ -615,10 +623,10 @@
           <div class="section-label">Battle Stats</div>
           <div class="field"><label>Name</label><input id="p2_name" value="Player 2" type="text"></div>
           <div class="field"><label>Level</label><input id="p2_level" value="100" type="number" min="1"></div>
-          <div class="field"><label>Strength</label><input id="p2_str" value="50000" type="number"></div>
-          <div class="field"><label>Defense</label><input id="p2_def" value="50000" type="number"></div>
-          <div class="field"><label>Speed</label><input id="p2_spd" value="50000" type="number"></div>
-          <div class="field"><label>Dexterity</label><input id="p2_dex" value="50000" type="number"></div>
+          <div class="field"><label>Strength</label><input id="p2_str" value="1000000000" type="number"></div>
+          <div class="field"><label>Defense</label><input id="p2_def" value="1000000000" type="number"></div>
+          <div class="field"><label>Speed</label><input id="p2_spd" value="1000000000" type="number"></div>
+          <div class="field"><label>Dexterity</label><input id="p2_dex" value="1000000000" type="number"></div>
         </div>
 
         <!-- Weapons -->
@@ -746,7 +754,7 @@
 
         <!-- Education -->
         <div class="form-grid" style="margin-top:10px;">
-          <div class="section-label">Education Boosts</div>
+          <div class="section-label">Education Boosts <button class="max-btn" onclick="maxEducation('p2')">Max All</button></div>
           <div class="check-grid form-full">
             <label class="check-item"><input type="checkbox" id="p2_edu_jap"><span>History (+10% Japanese blade dmg)</span></label>
             <label class="check-item"><input type="checkbox" id="p2_edu_fist"><span>Self Defense (fist dmg +100%)</span></label>
@@ -773,7 +781,7 @@
 
         <!-- Merits -->
         <div class="form-grid" id="p2_section_merits" style="margin-top:10px;">
-          <div class="section-label">Merits (levels)</div>
+          <div class="section-label">Merits (Levels 0-10) <button class="max-btn" onclick="maxMerits('p2')">Max All</button></div>
           <div class="field"><label>Crit Rate</label><input id="p2_m_crit" value="0" type="number" min="0" max="10"></div>
           <div class="field"><label>Life</label><input id="p2_m_life" value="0" type="number" min="0" max="10"></div>
           <div class="field"><label>Strength</label><input id="p2_m_str" value="0" type="number" min="0" max="10"></div>
@@ -794,7 +802,7 @@
 
         <!-- Faction -->
         <div class="form-grid" id="p2_section_faction" style="margin-top:10px;">
-          <div class="section-label">Faction Upgrades</div>
+          <div class="section-label">Faction Upgrades <button class="max-btn" onclick="maxFaction('p2')">Max All</button></div>
           <div class="field"><label>Aggression Speed (%)</label><input id="p2_fac_agg_spd" value="0" type="number" min="0" max="20"></div>
           <div class="field"><label>Aggression Strength (%)</label><input id="p2_fac_agg_str" value="0" type="number" min="0" max="20"></div>
           <div class="field"><label>Aggression Accuracy (0-10 levels)</label><input id="p2_fac_agg_acc" value="0" type="number" min="0" max="10"></div>
