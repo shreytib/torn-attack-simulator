@@ -4,6 +4,21 @@
 // =====================================================================
 
 // -----------------------------------------------------------------------
+// Stat input formatting — comma-separated display for large numbers
+// -----------------------------------------------------------------------
+function formatStat(val) {
+  const n = parseFloat(String(val).replace(/,/g, ''));
+  return isNaN(n) ? '0' : n.toLocaleString('en-US');
+}
+
+function formatStatInputs(prefix) {
+  for (const stat of ['str', 'def', 'spd', 'dex']) {
+    const el = document.getElementById(`${prefix}_${stat}`);
+    if (el) el.value = formatStat(el.value);
+  }
+}
+
+// -----------------------------------------------------------------------
 // populateSelects — fill all dropdowns on page load
 // -----------------------------------------------------------------------
 function populateSelects() {
@@ -49,6 +64,16 @@ function populateSelects() {
     COMPANY_NAMES.forEach(c => compEl.add(new Option(c, c)));
   }
 
+  // Stat inputs: strip commas on focus, reformat on blur
+  for (const prefix of ['p1', 'p2']) {
+    for (const stat of ['str', 'def', 'spd', 'dex']) {
+      const el = document.getElementById(`${prefix}_${stat}`);
+      if (!el) continue;
+      el.addEventListener('focus', () => { el.value = el.value.replace(/,/g, ''); });
+      el.addEventListener('blur',  () => { el.value = formatStat(el.value); });
+    }
+  }
+
   // Set sensible defaults
   document.getElementById('p1_wep_p_name').value = 'M4A1 Colt Carbine';
   document.getElementById('p1_wep_s_name').value = 'Desert Eagle';
@@ -80,10 +105,10 @@ function readPlayer(prefix) {
   return {
     name:      g(`${prefix}_name`),
     level:     parseInt(g(`${prefix}_level`)) || 1,
-    strength:  gn(`${prefix}_str`),
-    defense:   gn(`${prefix}_def`),
-    speed:     gn(`${prefix}_spd`),
-    dexterity: gn(`${prefix}_dex`),
+    strength:  parseFloat(g(`${prefix}_str`).replace(/,/g, '')) || 0,
+    defense:   parseFloat(g(`${prefix}_def`).replace(/,/g, '')) || 0,
+    speed:     parseFloat(g(`${prefix}_spd`).replace(/,/g, '')) || 0,
+    dexterity: parseFloat(g(`${prefix}_dex`).replace(/,/g, '')) || 0,
     fist:      g(`${prefix}_fist`) === '1',
     property:  g(`${prefix}_property`) === '1' ? 0.02 : 0,
 
@@ -885,6 +910,7 @@ async function loadFromAPI(prefix) {
     }
 
     applyAPIData(prefix, data);
+    formatStatInputs(prefix);
     statusEl.className = 'api-status ok';
     statusEl.textContent = `Loaded: ${data.profile?.name ?? 'unknown'}`;
 
