@@ -248,6 +248,28 @@ function maxEducation(prefix) {
   sv('edu_dex_p', 19);
 }
 
+const ARMOR_PRESETS = {
+  assault:  { helm:{r:47,bl:23}, body:{r:47,bl:23}, pants:{r:47,bl:23}, gloves:{r:47,bl:23}, boots:{r:47,bl:23} },
+  riot:     { helm:{r:36,bl:23}, body:{r:46,bl:23}, pants:{r:46,bl:23}, gloves:{r:46,bl:23}, boots:{r:46,bl:23} },
+  dune:     { helm:{r:45,bl:33}, body:{r:45,bl:33}, pants:{r:45,bl:33}, gloves:{r:45,bl:33}, boots:{r:45,bl:33} },
+  delta:    { helm:{r:50,bl:12}, body:{r:50,bl:8},  pants:{r:50,bl:7},  gloves:{r:50,bl:4},  boots:{r:50,bl:4}  },
+  marauder: { helm:{r:41,bl:5},  body:{r:53,bl:7},  pants:{r:53,bl:4},  gloves:{r:53,bl:2},  boots:{r:53,bl:2}  },
+  sentinel: { helm:{r:54,bl:33}, body:{r:54,bl:43}, pants:{r:54,bl:27}, gloves:{r:54,bl:16}, boots:{r:54,bl:16} },
+  vanguard: { helm:{r:49,bl:33}, body:{r:49,bl:43}, pants:{r:49,bl:27}, gloves:{r:49,bl:16}, boots:{r:49,bl:16} },
+  eod:      { helm:{r:56,bl:23}, body:{r:56,bl:23}, pants:{r:56,bl:23}, gloves:{r:56,bl:23}, boots:{r:56,bl:23} },
+};
+
+function setArmorPreset(prefix, type) {
+  const preset = ARMOR_PRESETS[type];
+  if (!preset) return;
+  const sv = (id, val) => { const el = document.getElementById(`${prefix}_${id}`); if (el) el.value = val; };
+  for (const piece of ['helm', 'body', 'pants', 'gloves', 'boots']) {
+    sv(piece,           type);
+    sv(`${piece}_r`,   preset[piece].r);
+    sv(`${piece}_bl`,  preset[piece].bl);
+  }
+}
+
 function maxFaction(prefix) {
   const sv = (id, val) => { const el = document.getElementById(`${prefix}_${id}`); if (el) el.value = val; };
   sv('fac_agg_spd', 20);

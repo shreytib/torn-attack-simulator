@@ -109,6 +109,17 @@
     border: 1px solid var(--border); border-radius: 2px;
     margin: 8px 0 6px; grid-column: 1/-1;
   }
+  /* ARMOR PRESET BUTTONS */
+  .armor-presets {
+    grid-column: 1/-1; display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px;
+  }
+  .armor-preset-btn {
+    font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.5px;
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 3px 9px; border-radius: 2px; cursor: pointer; text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .armor-preset-btn:hover { color: var(--accent); border-color: var(--accent); }
   /* ARMOR SLOT LABEL */
   .armor-slot {
     font-family: var(--font-mono); font-size: 9px; font-weight: 600;
@@ -464,6 +475,16 @@
         <!-- Armor -->
         <div class="form-grid-3" style="margin-top:10px;">
           <div class="section-label">Armor</div>
+          <div class="armor-presets" id="p1_armor_presets">
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','assault')">Assault</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','riot')">Riot</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','dune')">Dune</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','delta')">Delta</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','marauder')">Marauder</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','sentinel')">Sentinel</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','vanguard')">Vanguard</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p1','eod')">EOD</button>
+          </div>
 
           <div class="armor-slot">Helmet</div>
           <div class="field"><label>Type</label><select id="p1_helm"></select></div>
@@ -707,6 +728,16 @@
         <!-- Armor -->
         <div class="form-grid-3" style="margin-top:10px;">
           <div class="section-label">Armor</div>
+          <div class="armor-presets" id="p2_armor_presets">
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','assault')">Assault</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','riot')">Riot</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','dune')">Dune</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','delta')">Delta</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','marauder')">Marauder</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','sentinel')">Sentinel</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','vanguard')">Vanguard</button>
+            <button class="armor-preset-btn" onclick="setArmorPreset('p2','eod')">EOD</button>
+          </div>
 
           <div class="armor-slot">Helmet</div>
           <div class="field"><label>Type</label><select id="p2_helm"></select></div>
